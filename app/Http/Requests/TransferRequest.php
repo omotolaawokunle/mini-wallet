@@ -59,9 +59,16 @@ class TransferRequest extends FormRequest
 
     public function prepareForValidation()
     {
-        $this->merge([
+        $data = [
             'sender_id' => $this->user()->id,
-            'commission_fee' => $this->amount * config('constant.commission_percentage'),
-        ]);
+        ];
+
+        if ($this->has('amount') && is_numeric($this->amount)) {
+            $data['commission_fee'] = $this->amount * config('constant.commission_percentage');
+        } else {
+            $data['commission_fee'] = 0;
+        }
+
+        $this->merge($data);
     }
 }
