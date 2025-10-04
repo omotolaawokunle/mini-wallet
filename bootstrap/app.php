@@ -1,8 +1,14 @@
 <?php
 
+use App\Services\ResponseService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,5 +26,55 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    // Handle validation exceptions
+    $exceptions->render(function (ValidationException $e, Request $request) {
+        if ($request->expectsJson()) {
+            return ResponseService::validationError($e);
+        }
+    });
+
+    // Handle not found exceptions
+    $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+        if ($request->expectsJson()) {
+            return ResponseService::notFound(
+                $e->getMessage() ?: 'Resource not found'
+            );
+        }
+    });
+
+    // Handle authentication exceptions
+    $exceptions->render(function (AuthenticationException $e, Request $request) {
+        if ($request->expectsJson()) {
+            return ResponseService::unauthorized(
+                $e->getMessage() ?: 'Unauthenticated'
+            );
+        }
+    });
+
+    // Handle access denied exceptions
+    $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
+        if ($request->expectsJson()) {
+            return ResponseService::forbidden(
+                $e->getMessage() ?: 'Access forbidden'
+            );
+        }
+    });
+
+    // Handle all other exceptions
+    $exceptions->render(function (Throwable $e, Request $request) {
+        if ($request->expectsJson()) {
+            $message = config('app.debug')
+                ? $e->getMessage()
+                : 'Internal server error';
+
+            $errors = config('app.debug') ? [
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => collect($e->getTrace())->take(5)->toArray(),
+            ] : null;
+
+            return ResponseService::serverError($message, $errors);
+        }
+    });
     })->create();
