@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Broadcasting\BroadcastServiceProvider;
-
 return [
     App\Providers\AppServiceProvider::class,
-    BroadcastServiceProvider::class
+    App\Providers\HorizonServiceProvider::class,
+    Illuminate\Broadcasting\BroadcastServiceProvider::class,
 ];

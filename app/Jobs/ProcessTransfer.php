@@ -20,13 +20,20 @@ class ProcessTransfer implements ShouldQueue
     public $tries = 3;
     public $timeout = 60;
     public $maxExceptions = 3;
-    public $backoff = 1000;
+    public $backoff = [5, 10, 15];
 
     /**
      * Create a new job instance.
      */
-    public function __construct(public int $senderId, public int $receiverId, public float $amount, public float $commissionFee)
-    {}
+    public function __construct(
+        public int $senderId,
+        public int $receiverId,
+        public float $amount,
+        public float $commissionFee,
+        public bool $isHighPriority = false
+    ) {
+        $this->onQueue($isHighPriority ? 'transfers-high' : 'transfers');
+    }
 
     /**
      * Execute the job.
