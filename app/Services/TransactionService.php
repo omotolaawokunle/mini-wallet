@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Transaction;
+use App\Events\TransactionCreated;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\InsufficientBalanceException;
 
@@ -29,13 +30,15 @@ class TransactionService
             }
             $sender->decrement('balance', $data['amount'] + $data['commission_fee']);
             $receiver->increment('balance', $data['amount']);
-
-            return Transaction::create([
+            $transaction = Transaction::create([
                 'sender_id' => $data['sender_id'],
                 'receiver_id' => $data['receiver_id'],
                 'amount' => $data['amount'],
                 'commission_fee' => $data['commission_fee'],
             ]);
+            event(new TransactionCreated($transaction, $sender));
+            event(new TransactionCreated($transaction, $receiver));
+            return $transaction;
         });
     }
 }
