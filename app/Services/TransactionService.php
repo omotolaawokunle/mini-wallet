@@ -9,6 +9,13 @@ use App\Exceptions\InsufficientBalanceException;
 
 class TransactionService
 {
+    /**
+     * Transfer money between two users
+     * @param array $data {sender_id: int, receiver_id: int, amount: float, commission_fee: float}
+     * @return Transaction
+     * @throws \Exception
+     * @throws InsufficientBalanceException
+     */
     public function transfer(array $data): Transaction
     {
         return DB::transaction(function () use ($data) {
