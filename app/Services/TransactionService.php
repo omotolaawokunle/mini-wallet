@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Transaction;
+use App\Jobs\ProcessTransfer;
 use App\Events\TransactionCreated;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\InsufficientBalanceException;
@@ -40,5 +41,15 @@ class TransactionService
             event(new TransactionCreated($transaction, $receiver));
             return $transaction;
         });
+    }
+
+    /**
+     * Queue transfer for processing
+     * @param array $data {sender_id: int, receiver_id: int, amount: float, commission_fee: float}
+     * @return void
+     */
+    public function queueTransfer(array $data): void
+    {
+        ProcessTransfer::dispatch($data['sender_id'], $data['receiver_id'], $data['amount'], $data['commission_fee']);
     }
 }

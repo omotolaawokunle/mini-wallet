@@ -22,8 +22,8 @@ class TransferRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sender_id' => 'required|exists:users,id',
-            'receiver_id' => 'required|exists:users,id',
+            'sender_id' => 'required|exists:users,id|different:receiver_id',
+            'receiver_id' => 'required|exists:users,id|different:sender_id',
             'amount' => 'required|numeric|min:1',
             'commission_fee' => 'required|numeric|min:0',
         ];
@@ -34,8 +34,10 @@ class TransferRequest extends FormRequest
         return [
             'sender_id.required' => 'Sender is required',
             'sender_id.exists' => 'Sender is not valid',
+            'sender_id.different' => 'Sender and receiver cannot be the same',
             'receiver_id.required' => 'Receiver is required',
             'receiver_id.exists' => 'Receiver is not valid',
+            'receiver_id.different' => 'Sender and receiver cannot be the same',
             'amount.required' => 'Amount is required',
             'amount.numeric' => 'Amount must be a number',
             'amount.min' => 'Amount must be greater than 0',
@@ -58,6 +60,7 @@ class TransferRequest extends FormRequest
     public function prepareForValidation()
     {
         $this->merge([
+            'sender_id' => $this->user()->id,
             'commission_fee' => $this->amount * config('constant.commission_percentage'),
         ]);
     }
