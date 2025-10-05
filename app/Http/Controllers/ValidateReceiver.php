@@ -16,6 +16,9 @@ class ValidateReceiver extends Controller
         if (!$receiver) {
             return $this->error(message:'Receiver not found', errors: ['receiver_id' => 'Receiver not found'], statusCode: 422);
         }
+        if ($receiver->is_flagged) {
+            return $this->error(message: 'Receiver is flagged', errors: ['receiver_id' => 'Receiver cannot receive funds. Please contact support.'], statusCode: 422);
+        }
         return $this->success(message: 'Receiver found', data: $receiver);
     }
 }

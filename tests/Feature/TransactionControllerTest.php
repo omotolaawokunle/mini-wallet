@@ -314,4 +314,21 @@ describe('Transaction Store', function () {
 
         expect($this->user->balance)->toBe($initialBalance);
     });
+
+    it('does not allow transactions when user is flagged', function () {
+        $sender = User::factory()->create(['balance' => 1000, 'flagged_at' => now(), 'flagged_reason' => 'Flagged for testing']);
+
+        $receiver = User::factory()->create(['balance' => 500]);
+
+        $response = $this->actingAs($sender)->postJson('/api/transactions', [
+            'receiver_id' => $receiver->id,
+            'amount' => 100,
+        ]);
+
+        $response->assertStatus(403)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Your account has been flagged. Please contact support.',
+            ]);
+    });
 });

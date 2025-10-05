@@ -237,6 +237,7 @@
 
     const canSubmit = computed(() => {
         return !transactionStore.isSubmitting &&
+            !authStore.user?.is_flagged &&
             form.value.receiver_id.length > 0 &&
             receiverValid.value &&
             isValidAmount.value &&

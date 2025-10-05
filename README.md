@@ -8,6 +8,7 @@ A modern, real-time digital wallet application built with Laravel 12 and Vue 3. 
 - **Real-time Transfers**: Instant money transfers between users with WebSocket notifications
 - **Transaction History**: Paginated transaction list with sender/receiver details
 - **Balance Management**: Real-time balance updates with race condition protection
+- **Balance Integrity**: Automated verification every 12 hours with account flagging for discrepancies
 - **Commission Fees**: Configurable transaction fees
 - **Queue System**: Asynchronous transaction processing with Laravel Horizon
 - **Rate Limiting**: Transfer throttling (3 transfers per minute)
@@ -270,6 +271,25 @@ npm run dev
 php artisan horizon
 ```
 
+### Scheduled Commands
+
+The application includes scheduled commands that need to run continuously. In development, start the scheduler:
+
+```bash
+php artisan schedule:work
+```
+
+**Scheduled Tasks:**
+- **Balance Verification**: Runs every 12 hours (1:00 AM and 1:00 PM)
+  - Verifies all user balances against transaction history
+  - Flags accounts with discrepancies
+  - Sends email report to admin
+
+In production, add this to your crontab:
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
 ### Production Build
 
 ```bash
@@ -385,10 +405,14 @@ This ensures that concurrent transfers don't cause balance inconsistencies.
 ```
 mini-wallet/
 ├── app/
+│   ├── Console/
+│   │   └── Commands/         # Artisan commands
+│   │       └── VerifyUserBalances.php
 │   ├── Events/               # Event classes
 │   │   ├── TransactionCreated.php
 │   │   └── TransferFailed.php
 │   ├── Exceptions/           # Custom exceptions
+│   │   ├── AccountFlaggedException.php
 │   │   ├── InsufficientBalanceException.php
 │   │   └── TransferException.php
 │   ├── Http/
@@ -404,7 +428,11 @@ mini-wallet/
 │   │       ├── TransactionResource.php
 │   │       └── UserResource.php
 │   ├── Jobs/                 # Queue jobs
-│   │   └── ProcessTransfer.php
+│   │   ├── ProcessTransfer.php
+│   │   ├── VerifyUserBalance.php
+│   │   └── SendBalanceDiscrepancyReport.php
+│   ├── Mail/                 # Mailable classes
+│   │   └── BalanceDiscrepancyMail.php
 │   ├── Models/               # Eloquent models
 │   │   ├── Transaction.php
 │   │   └── User.php

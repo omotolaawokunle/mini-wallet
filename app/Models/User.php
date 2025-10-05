@@ -3,6 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use Dom\Attr;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -24,6 +27,8 @@ class User extends Authenticatable
         'email',
         'password',
         'balance',
+        'flagged_at',
+        'flagged_reason',
     ];
 
     /**
@@ -47,7 +52,15 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'balance' => 'decimal:2',
+            'flagged_at' => 'datetime',
         ];
+    }
+
+    public function isFlagged(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value) => $this->flagged_at !== null,
+        );
     }
 
     public function outgoingTransactions(): HasMany

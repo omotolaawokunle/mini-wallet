@@ -401,6 +401,8 @@ class TransactionResource extends JsonResource
 | email | varchar(255) | UNIQUE, NOT NULL | User's email |
 | password | varchar(255) | NOT NULL | Hashed password |
 | balance | decimal(12,2) | DEFAULT 0.00 | User's wallet balance |
+| flagged_at | timestamp | NULL | Timestamp when account was flagged |
+| flagged_reason | text | NULL | Reason for account flagging |
 | email_verified_at | timestamp | NULL | Email verification time |
 | remember_token | varchar(100) | NULL | Remember token |
 | created_at | timestamp | NULL | Creation timestamp |
@@ -410,6 +412,7 @@ class TransactionResource extends JsonResource
 **Indexes:**
 - PRIMARY KEY (id)
 - UNIQUE KEY (email)
+- INDEX (flagged_at)
 
 #### transactions
 
@@ -566,6 +569,140 @@ Route::post('/transactions', [TransactionController::class, 'store'])
 
 - Laravel Sanctum double-submit cookie
 - X-XSRF-TOKEN header validation
+
+---
+
+## Balance Integrity System
+
+### Overview
+
+The system includes an automated balance verification process that runs every 12 hours to ensure data integrity and detect any discrepancies in user account balances.
+
+### How It Works
+
+1. **Scheduled Command** (`wallet:verify-balances`)
+   - Runs every 12 hours (1:00 AM and 1:00 PM)
+   - Fetches all active users
+   - Dispatches verification jobs to the queue
+
+2. **Verification Process** (`VerifyUserBalance` Job)
+   - For each user, calculates the expected balance:
+     ```php
+     Expected Balance = Total Incoming - (Total Outgoing + Total Fees)
+     ```
+   - Compares expected balance with actual balance
+   - If discrepancy > $0.01, flags the user account
+   - Records the discrepancy reason
+   - Auto-unflag accounts if balance is corrected
+
+3. **Admin Notification** (`SendBalanceDiscrepancyReport` Job)
+   - Runs after all verifications complete
+   - Collects all flagged users
+   - Sends email report to administrator
+   - Includes user details and discrepancy information
+
+### Flagged Account Behavior
+
+**When an account is flagged:**
+- User cannot initiate transfers
+- User cannot receive transfers
+- Frontend displays alert with flagged reason
+- Transfer form is disabled
+- API returns 403 error for transfer attempts
+
+**Account Flagging Fields:**
+
+```php
+// User Model
+flagged_at: timestamp | null       // When account was flagged
+flagged_reason: text | null        // Reason for flagging
+is_flagged: boolean (accessor)     // Computed from flagged_at !== null
+```
+
+**Example Flagged Reason:**
+
+```
+Balance mismatch detected. Expected: $950.00, Actual: $1000.00, Discrepancy: $50.00
+```
+
+### Resolution Process
+
+1. Administrator receives email notification
+2. Reviews flagged user's transaction history
+3. Investigates cause of discrepancy
+4. Corrects the balance if necessary
+5. System automatically unflag on next verification if balance matches
+
+### Email Notification
+
+**Sent To:** Admin email (configured in `.env`)
+
+**Contains:**
+- Total number of flagged accounts
+- User ID, name, email
+- Current balance
+- Flagged timestamp
+- Detailed reason for discrepancy
+
+**Email Configuration:**
+
+```env
+MAIL_ADMIN_EMAIL=admin@example.com
+```
+
+### Job Chain Flow
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ Scheduled Command: wallet:verify-balances               │
+│ (Runs every 12 hours)                                   │
+└────────────────┬─────────────────────────────────────────┘
+                 │
+                 │ Dispatches job chain
+                 ▼
+┌──────────────────────────────────────────────────────────┐
+│ VerifyUserBalance Job (User 1)                          │
+│ - Calculate expected balance                            │
+│ - Compare with actual balance                           │
+│ - Flag if mismatch > $0.01                              │
+└────────────────┬─────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────┐
+│ VerifyUserBalance Job (User 2)                          │
+│ ...                                                      │
+└────────────────┬─────────────────────────────────────────┘
+                 │
+                 ▼
+                ...
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────┐
+│ VerifyUserBalance Job (User N)                          │
+└────────────────┬─────────────────────────────────────────┘
+                 │
+                 │ After all verifications
+                 ▼
+┌──────────────────────────────────────────────────────────┐
+│ SendBalanceDiscrepancyReport Job                        │
+│ - Collect all flagged users                             │
+│ - Send email to admin                                   │
+│ - Log completion                                        │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Manual Verification
+
+Administrators can manually trigger balance verification:
+
+```bash
+php artisan wallet:verify-balances
+```
+
+This is useful for:
+- On-demand verification after data migration
+- Testing the verification system
+- Immediate checks after suspected issues
 
 ---
 

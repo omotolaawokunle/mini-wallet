@@ -7,6 +7,7 @@ use App\Events\TransactionCreated;
 use App\Services\TransactionService;
 use Illuminate\Support\Facades\Event;
 use App\Exceptions\InsufficientBalanceException;
+use App\Exceptions\AccountFlaggedException;
 
 beforeEach(function () {
     $this->transactionService = new TransactionService();
@@ -273,6 +274,85 @@ it('prevents race conditions with database locking', function () {
     $finalBalance = $sender->balance;
 
     expect($finalBalance)->toBe('890.00');
+});
+
+it('throws exception when sender account is flagged', function () {
+    $sender = User::factory()->create([
+        'balance' => 1000,
+        'flagged_at' => now(),
+        'flagged_reason' => 'Balance discrepancy detected',
+    ]);
+    $receiver = User::factory()->create(['balance' => 500]);
+
+    $this->transactionService->transfer([
+        'sender_id' => $sender->id,
+        'receiver_id' => $receiver->id,
+        'amount' => 100,
+        'commission_fee' => 10,
+    ]);
+})->throws(AccountFlaggedException::class);
+
+it('throws exception when receiver account is flagged', function () {
+    $sender = User::factory()->create(['balance' => 1000]);
+    $receiver = User::factory()->create([
+        'balance' => 500,
+        'flagged_at' => now(),
+        'flagged_reason' => 'Balance discrepancy detected',
+    ]);
+
+    $this->transactionService->transfer([
+        'sender_id' => $sender->id,
+        'receiver_id' => $receiver->id,
+        'amount' => 100,
+        'commission_fee' => 10,
+    ]);
+})->throws(AccountFlaggedException::class, 'The receiver account has been flagged');
+
+it('does not deduct balance when sender is flagged', function () {
+    $sender = User::factory()->create([
+        'balance' => 1000,
+        'flagged_at' => now(),
+        'flagged_reason' => 'Balance discrepancy detected',
+    ]);
+    $receiver = User::factory()->create(['balance' => 500]);
+    $initialBalance = $sender->balance;
+
+    try {
+        $this->transactionService->transfer([
+            'sender_id' => $sender->id,
+            'receiver_id' => $receiver->id,
+            'amount' => 100,
+            'commission_fee' => 10,
+        ]);
+    } catch (AccountFlaggedException $e) {
+        // Expected exception
+    }
+
+    $sender->refresh();
+    expect($sender->balance)->toBe($initialBalance);
+});
+
+it('does not create transaction when account is flagged', function () {
+    $sender = User::factory()->create([
+        'balance' => 1000,
+        'flagged_at' => now(),
+        'flagged_reason' => 'Balance discrepancy detected',
+    ]);
+    $receiver = User::factory()->create(['balance' => 500]);
+    $initialCount = Transaction::count();
+
+    try {
+        $this->transactionService->transfer([
+            'sender_id' => $sender->id,
+            'receiver_id' => $receiver->id,
+            'amount' => 100,
+            'commission_fee' => 10,
+        ]);
+    } catch (AccountFlaggedException $e) {
+        // Expected exception
+    }
+
+    expect(Transaction::count())->toBe($initialCount);
 });
 
 describe('Queue Transfer', function () {
