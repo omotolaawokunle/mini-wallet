@@ -27,6 +27,7 @@ class TransactionResource extends JsonResource
                 'Debit',
                 $request->user()?->id === $this->receiver_id ? 'Credit' : null
             ),
+            'created_at' => $this->created_at->toISOString(),
         ];
     }
 }

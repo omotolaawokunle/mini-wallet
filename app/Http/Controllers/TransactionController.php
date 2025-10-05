@@ -30,11 +30,7 @@ class TransactionController extends Controller
 
     public function store(TransferRequest $request): JsonResponse
     {
-        try {
-            $transaction = $this->transactionService->transfer($request->validated());
-            return $this->success('Transaction successful', new TransactionResource($transaction));
-        } catch (InsufficientBalanceException $e) {
-            return $this->error($e->getMessage());
-        }
+        $this->transactionService->queueTransfer($request->validated());
+        return $this->success('Transaction processing');
     }
 }
