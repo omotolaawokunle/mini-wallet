@@ -17,6 +17,7 @@ class TransactionController extends Controller
     public function index(): JsonResponse
     {
         $user = Auth::user();
+        $this->authorize('viewAny', Transaction::class);
         $transactions = Transaction::with('sender', 'receiver')
             ->forUser($user->id)
             ->latest()
@@ -30,6 +31,7 @@ class TransactionController extends Controller
 
     public function store(TransferRequest $request): JsonResponse
     {
+        $this->authorize('transfer', [Transaction::class, $request->sender_id]);
         $this->transactionService->queueTransfer($request->validated());
         return $this->success('Transaction processing');
     }
