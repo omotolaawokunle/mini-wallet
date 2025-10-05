@@ -206,7 +206,7 @@
     import { formatCurrency, parseAmount, calculateCommission, calculateTotal } from '@/utils/currency'
     import { extractValidationErrors } from '@/utils/errors'
     import type { TransferFormData, FormErrors } from '@/types/transaction'
-    import type { User } from '@/types/user'
+    import type { User } from '@/types/auth'
 
     const authStore = useAuthStore()
     const transactionStore = useTransactionStore()
@@ -288,6 +288,7 @@ const handleReceiverInput = () => {
     receiverValid.value = false
     delete errors.value.receiver_id
     transactionStore.clearMessages()
+    receiver.value = null
     validateReceiver()
 }
 
