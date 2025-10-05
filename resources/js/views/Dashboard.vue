@@ -1,5 +1,8 @@
 <template>
     <div class="min-h-screen bg-gray-50">
+        <!-- Toast Container -->
+        <ToastContainer />
+
         <!-- Navigation -->
         <nav class="bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -30,19 +33,22 @@
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Balance Card -->
             <div class="mb-6">
-                <BalanceCard />
+                <LoadingSkeleton v-if="isLoadingInitial" type="balance-card" />
+                <BalanceCard v-else />
             </div>
 
             <!-- Transfer and Transactions Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <!-- Transfer Form (1/3 width on large screens) -->
                 <div class="lg:col-span-1">
-                    <TransferForm />
+                    <LoadingSkeleton v-if="isLoadingInitial" type="form" />
+                    <TransferForm v-else />
                 </div>
 
                 <!-- Transaction History (2/3 width on large screens) -->
                 <div class="lg:col-span-2">
-                    <TransactionHistory />
+                    <LoadingSkeleton v-if="isLoadingInitial" type="transaction-list" :count="5" />
+                    <TransactionHistory v-else />
                 </div>
             </div>
         </main>
@@ -53,15 +59,21 @@
     import { useRouter } from 'vue-router'
     import { useAuthStore } from '@/stores/auth'
     import { useTransactionStore } from '@/stores/transaction'
+    import { useToast } from '@/composables/useToast'
     import BalanceCard from '@/components/BalanceCard.vue'
     import TransferForm from '@/components/TransferForm.vue'
     import TransactionHistory from '@/components/TransactionHistory.vue'
+    import ToastContainer from '@/components/ToastContainer.vue'
+    import LoadingSkeleton from '@/components/LoadingSkeleton.vue'
     import echo from '@/bootstrap'
     import type { Transaction } from '@/types/transaction'
     import type { User } from '@/types/auth'
+
     const router = useRouter()
     const authStore = useAuthStore()
     const transactionStore = useTransactionStore()
+    const { success, error: showError } = useToast()
+    const isLoadingInitial = ref(true)
 
     const handleLogout = async () => {
         try {
@@ -74,8 +86,18 @@
     }
 
     onMounted(async () => {
-        // Fetch initial transactions
-        await transactionStore.fetchTransactions()
+        // Fetch initial transactions with loading skeleton
+        try {
+            await transactionStore.fetchTransactions()
+        } catch (error) {
+            console.error('Error fetching transactions:', error)
+            showError('Error', 'Failed to load transactions')
+        } finally {
+            // Show skeleton for minimum 800ms for smooth UX
+            setTimeout(() => {
+                isLoadingInitial.value = false
+            }, 800)
+        }
 
         // Set up Pusher real-time updates
         if (authStore.user) {
@@ -85,14 +107,33 @@
                 // Listen for transaction created events
                 channel.listen('.transaction.created', (e: { transaction: Transaction }) => {
                     console.log('Transaction event received:', e)
-                    transactionStore.setSuccessMessage('Transfer successfully completed')
                     transactionStore.addTransaction(e.transaction)
+
+                    // Show success toast
+                    const isSender = e.transaction.sender_id === authStore.user?.id
+                    if (isSender) {
+                        success(
+                            'Transfer Completed!',
+                            `Successfully sent $${e.transaction.amount} to User ID ${e.transaction.receiver_id}`,
+                            5000
+                        )
+                    } else {
+                        success(
+                            'Money Received!',
+                            `You received $${e.transaction.amount} from User ID ${e.transaction.sender_id}`,
+                            5000
+                        )
+                    }
                 })
 
                 // Listen for transfer failed events
                 channel.listen('.transfer.failed', (e: { sender_id: number, receiver_id: number, receiver: User, amount: number, commission_fee: number, message: string }) => {
                     console.log('Transfer failed event received:', e)
-                    transactionStore.setError(`Failed to transfer money to User ID: ${e.receiver.id}. Reason: ${e.message}`)
+                    showError(
+                        'Transfer Failed',
+                        `Failed to transfer $${e.amount} to User ID: ${e.receiver.id}. ${e.message}`,
+                        6000
+                    )
                 })
 
             } catch (error) {
