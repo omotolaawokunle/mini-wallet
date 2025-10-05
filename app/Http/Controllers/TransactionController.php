@@ -18,8 +18,7 @@ class TransactionController extends Controller
     {
         $user = Auth::user();
         $transactions = Transaction::with('sender', 'receiver')
-            ->where('sender_id', $user->id)
-            ->orWhere('receiver_id', $user->id)
+            ->forUser($user->id)
             ->latest()
             ->paginate(20);
 
