@@ -85,7 +85,6 @@ return [
 
     'waits' => [
         'redis:default' => 30,
-        'redis:transfers-high' => 5,
         'redis:transfers' => 15,
         'redis:notifications' => 60,
         'redis:low' => 120,
@@ -188,25 +187,7 @@ return [
     */
 
     'defaults' => [
-        // High-priority transfers supervisor
-        'transfers-high' => [
-            'connection' => 'redis',
-            'queue' => ['transfers-high'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
-            'minProcesses' => 5,
-            'maxProcesses' => 20,
-            'balanceMaxShift' => 5,
-            'balanceCooldown' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 1000,
-            'memory' => 256,
-            'tries' => 3,
-            'timeout' => 30,
-            'nice' => 0,
-        ],
-
-        // Standard transfers supervisor
+        // Transfers supervisor
         'transfers' => [
             'connection' => 'redis',
             'queue' => ['transfers'],
@@ -281,15 +262,7 @@ return [
 
     'environments' => [
         'production' => [
-            // High-priority transfers - optimized for speed
-            'transfers-high' => [
-                'minProcesses' => 10,
-                'maxProcesses' => 50,
-                'balanceMaxShift' => 10,
-                'balanceCooldown' => 1,
-            ],
-
-            // Standard transfers - handle bulk load
+            // Transfers - handle bulk load
             'transfers' => [
                 'minProcesses' => 20,
                 'maxProcesses' => 100,
@@ -317,11 +290,6 @@ return [
         ],
 
         'staging' => [
-            'transfers-high' => [
-                'minProcesses' => 3,
-                'maxProcesses' => 15,
-            ],
-
             'transfers' => [
                 'minProcesses' => 5,
                 'maxProcesses' => 30,
@@ -344,11 +312,6 @@ return [
         ],
 
         'local' => [
-            'transfers-high' => [
-                'minProcesses' => 1,
-                'maxProcesses' => 3,
-            ],
-
             'transfers' => [
                 'minProcesses' => 2,
                 'maxProcesses' => 5,

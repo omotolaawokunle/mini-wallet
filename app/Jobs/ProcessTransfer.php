@@ -30,9 +30,8 @@ class ProcessTransfer implements ShouldQueue
         public int $receiverId,
         public float $amount,
         public float $commissionFee,
-        public bool $isHighPriority = false
     ) {
-        $this->onQueue($isHighPriority ? 'transfers-high' : 'transfers');
+        $this->onQueue('transfers');
     }
 
     /**

@@ -45,18 +45,16 @@ class TransactionService
 
     /**
      * Queue transfer for processing
-     * @param array $data {sender_id: int, receiver_id: int, amount: float, commission_fee: float, is_high_priority: bool}
+     * @param array $data {sender_id: int, receiver_id: int, amount: float, commission_fee: float}
      * @return void
      */
     public function queueTransfer(array $data): void
     {
-        $isHighPriority = $data['is_high_priority'] ?? false;
         ProcessTransfer::dispatch(
             $data['sender_id'],
             $data['receiver_id'],
             $data['amount'],
             $data['commission_fee'],
-            $isHighPriority
         );
     }
 }
