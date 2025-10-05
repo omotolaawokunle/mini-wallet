@@ -8,6 +8,7 @@ use App\Jobs\ProcessTransfer;
 use App\Events\TransactionCreated;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\InsufficientBalanceException;
+use App\Exceptions\AccountFlaggedException;
 
 class TransactionService
 {
@@ -17,6 +18,7 @@ class TransactionService
      * @return Transaction
      * @throws \Exception
      * @throws InsufficientBalanceException
+     * @throws AccountFlaggedException
      */
     public function transfer(array $data): Transaction
     {
@@ -28,6 +30,12 @@ class TransactionService
             }
             if ($sender->id === $receiver->id) {
                 throw new \Exception('Sender and receiver cannot be the same');
+            }
+            if ($sender->is_flagged) {
+                throw new AccountFlaggedException($sender->flagged_reason ?? 'Your account has been flagged. Please contact support.');
+            }
+            if ($receiver->is_flagged) {
+                throw new AccountFlaggedException('The receiver account has been flagged. Transaction cannot be processed.');
             }
             if ($sender->balance < $data['amount'] + $data['commission_fee']) {
                 throw new InsufficientBalanceException('Sender does not have enough balance');

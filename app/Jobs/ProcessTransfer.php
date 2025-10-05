@@ -8,10 +8,11 @@ use App\Events\TransferFailed;
 use App\Events\TransactionCreated;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Exceptions\TransferException;
 use Illuminate\Foundation\Queue\Queueable;
+use App\Exceptions\AccountFlaggedException;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Exceptions\InsufficientBalanceException;
-use App\Exceptions\TransferException;
 
 class ProcessTransfer implements ShouldQueue
 {
@@ -48,6 +49,12 @@ class ProcessTransfer implements ShouldQueue
             if($sender->id === $receiver->id) {
                 throw new TransferException('Sender and receiver cannot be the same');
             }
+            if ($sender->is_flagged) {
+                throw new AccountFlaggedException($sender->flagged_reason ?? 'Your account has been flagged. Please contact support.');
+            }
+            if ($receiver->is_flagged) {
+                throw new AccountFlaggedException('The receiver account has been flagged. Transaction cannot be processed.');
+            }
             if ($sender->balance < $this->amount + $this->commissionFee) {
                 throw new InsufficientBalanceException('Sender does not have enough balance');
             }
@@ -68,7 +75,7 @@ class ProcessTransfer implements ShouldQueue
     {
         Log::error('ProcessTransfer failed: ' . $throwable->getMessage());
 
-        $message = $throwable instanceof TransferException || $throwable instanceof InsufficientBalanceException ? $throwable->getMessage() : 'Server error';
+        $message = ($throwable instanceof TransferException || $throwable instanceof InsufficientBalanceException || $throwable instanceof AccountFlaggedException) ? $throwable->getMessage() : 'Server error';
         event(new TransferFailed($this->senderId, $this->receiverId, $this->amount, $this->commissionFee, $message));
 
     }

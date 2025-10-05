@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\Transaction;
+use Illuminate\Auth\Access\Response;
 
 class TransactionPolicy
 {
@@ -18,14 +19,22 @@ class TransactionPolicy
                $transaction->receiver_id === $user->id;
     }
 
-    public function create(User $user): bool
+    public function create(User $user): Response
     {
-        return true;
+        return !$user->is_flagged ? Response::allow() : Response::deny('Your account has been flagged. Please contact support.');
     }
 
-    public function transfer(User $user, int $senderId): bool
+    public function transfer(User $user, int $senderId): Response
     {
-        return $user->id === $senderId;
+        if ($user->id !== $senderId) {
+            return Response::deny('You are not the sender of this transaction');
+        }
+
+        if ($user->is_flagged) {
+            return Response::deny('Your account has been flagged. Please contact support.');
+        }
+
+        return Response::allow();
     }
 }
 

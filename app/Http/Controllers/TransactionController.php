@@ -31,7 +31,6 @@ class TransactionController extends Controller
 
     public function store(TransferRequest $request): JsonResponse
     {
-        $this->authorize('transfer', [Transaction::class, $request->sender_id]);
         $this->transactionService->queueTransfer($request->validated());
         return $this->success('Transaction processing');
     }

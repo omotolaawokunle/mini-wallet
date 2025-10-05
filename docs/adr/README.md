@@ -26,6 +26,7 @@ Each ADR follows this structure:
 | [002](./002-use-pessimistic-locking-for-transfers.md) | Use Pessimistic Locking for Transfer Concurrency Control | Accepted | 2025-10-05 |
 | [003](./003-use-queue-for-async-processing.md) | Use Queue System for Asynchronous Transfer Processing | Accepted | 2025-10-05 |
 | [004](./004-use-tailwind-v4-for-styling.md) | Use Tailwind CSS v4 for Frontend Styling | Accepted | 2025-10-05 |
+| [005](./005-use-scheduled-balance-verification.md) | Use Scheduled Balance Verification for Data Integrity | Accepted | 2025-10-05 |
 
 ## Key Decisions Summary
 
@@ -44,6 +45,10 @@ Each ADR follows this structure:
 ### Frontend Styling
 - **Decision**: Tailwind CSS v4
 - **Rationale**: Rapid development, small bundle size, CSS-first configuration, modern approach
+
+### Balance Integrity
+- **Decision**: Scheduled balance verification every 12 hours
+- **Rationale**: Proactive discrepancy detection, automated flagging, non-intrusive to normal operations
 
 ## Process
 
