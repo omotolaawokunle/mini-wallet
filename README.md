@@ -32,7 +32,7 @@ A modern, real-time digital wallet application built with Laravel 12 and Vue 3. 
 - **Composer**: Latest stable version
 - **Node.js**: ^18.x or ^20.x
 - **NPM**: ^9.x or ^10.x
-- **Database**: SQLite (default), MySQL 8.0+, PostgreSQL 13+, or MariaDB 10.6+
+- **Database**: MySQL 8.0+ (default) or PostgreSQL 13+
 - **Redis**: ^6.2 (for queues and broadcasting)
 
 ## 🛠 Technology Stack
@@ -109,7 +109,7 @@ APP_MAINTENANCE_DRIVER=file
 FRONTEND_URL=http://localhost:5173
 
 # Database Configuration
-DB_CONNECTION=sqlite
+DB_CONNECTION=mysql
 # DB_HOST=127.0.0.1
 # DB_PORT=3306
 # DB_DATABASE=mini_wallet
@@ -117,7 +117,7 @@ DB_CONNECTION=sqlite
 # DB_PASSWORD=
 
 # Redis Configuration (Required for queues and broadcasting)
-REDIS_CLIENT=phpredis
+REDIS_CLIENT=predis
 REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
@@ -168,11 +168,6 @@ php artisan key:generate
 ```
 
 ### 6. Create Database
-
-For SQLite (default):
-```bash
-touch database/database.sqlite
-```
 
 For MySQL/PostgreSQL, create the database manually:
 ```bash
@@ -360,7 +355,7 @@ See [ARCHITECTURE.md](./docs/ARCHITECTURE.md) for detailed architecture document
                     │                      │                      │
               ┌─────▼─────┐         ┌─────▼─────┐         ┌─────▼─────┐
               │  Database │         │   Redis   │         │  Pusher   │
-              │  (SQLite) │         │  (Queue)  │         │   (WS)    │
+              │  (MySQL) │         │  (Queue)  │         │   (WS)    │
               └───────────┘         └───────────┘         └───────────┘
 ```
 
