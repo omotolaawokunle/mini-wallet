@@ -74,6 +74,7 @@ docs/
 | [ADR-002](./adr/002-use-pessimistic-locking-for-transfers.md) | Pessimistic Locking | Accepted |
 | [ADR-003](./adr/003-use-queue-for-async-processing.md) | Queue System | Accepted |
 | [ADR-004](./adr/004-use-tailwind-v4-for-styling.md) | Tailwind CSS v4 | Accepted |
+| [ADR-005](./adr/005-use-scheduled-balance-verification.md) | Balance Verification | Accepted |
 
 
 ## 🎯 Quick Reference
