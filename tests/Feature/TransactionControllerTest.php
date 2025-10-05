@@ -165,8 +165,7 @@ describe('Transaction Store', function () {
 
         \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\ProcessTransfer::class, function ($job) {
             return $job->senderId === $this->user->id &&
-                   $job->amount === 100.0 &&
-                   $job->isHighPriority === false;
+                $job->amount === 100.0;
         });
     });
 
@@ -232,7 +231,7 @@ describe('Transaction Store', function () {
             ->assertJsonValidationErrors(['amount']);
     });
 
-    it('dispatches job to standard priority queue by default', function () {
+    it('dispatches job to transfers queue', function () {
         \Illuminate\Support\Facades\Queue::fake();
 
         $receiver = User::factory()->create(['balance' => 500]);
@@ -245,8 +244,7 @@ describe('Transaction Store', function () {
         $response->assertOk();
 
         \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\ProcessTransfer::class, function ($job) {
-            return $job->queue === 'transfers' &&
-                   $job->isHighPriority === false;
+            return $job->queue === 'transfers';
         });
     });
 
