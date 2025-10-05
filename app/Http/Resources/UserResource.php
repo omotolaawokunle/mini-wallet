@@ -19,6 +19,9 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'balance' => $this->when($request->user()?->id === $this->id, (float) $this->balance),
+            'is_flagged' => $this->is_flagged,
+            'flagged_at' => $this->flagged_at,
+            'flagged_reason' => $this->flagged_reason,
         ];
     }
 }
