@@ -141,6 +141,9 @@ Create a new user account.
       "name": "John Doe",
       "email": "john@example.com",
       "balance": "0.00",
+      "is_flagged": false,
+      "flagged_at": null,
+      "flagged_reason": null,
       "created_at": "2025-10-05T10:30:00.000000Z"
     }
   }
@@ -737,8 +740,9 @@ Occurs when:
 Occurs when:
 - User is authenticated but not authorized to perform the action
 - Trying to transfer from another user's account
+- User account has been flagged due to balance discrepancy
 
-**Solution:** Ensure you're only transferring from your own account.
+**Solution:** Ensure you're only transferring from your own account. If your account is flagged, contact support to resolve the balance discrepancy.
 
 #### 422 Validation Error
 
@@ -790,6 +794,43 @@ X-RateLimit-Remaining: 2
 
 ---
 
+## User Account Flags
+
+### Flagged Accounts
+
+Users may be flagged if a balance discrepancy is detected during the automated verification process (runs every 12 hours).
+
+**User Fields:**
+
+```json
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "balance": "1000.00",
+  "is_flagged": true,
+  "flagged_at": "2025-10-05T14:30:00.000000Z",
+  "flagged_reason": "Balance mismatch detected. Expected: $950.00, Actual: $1000.00, Discrepancy: $50.00"
+}
+```
+
+**Behavior:**
+- Flagged users cannot make or receive transfers
+- Transfer attempts will return a 403 error with the flagged reason
+- Users remain flagged until an administrator resolves the discrepancy
+- The system automatically recalculates balances every 12 hours and will unflag accounts if the balance is corrected
+
+**Error Response (403):**
+
+```json
+{
+  "status": false,
+  "message": "Your account has been flagged due to balance discrepancy. Please contact support."
+}
+```
+
+---
+
 ## Best Practices
 
 1. **Always get CSRF token** before making authenticated requests
@@ -800,6 +841,7 @@ X-RateLimit-Remaining: 2
 6. **Store sensitive data securely** (never in localStorage)
 7. **Implement proper logout** to clear sessions
 8. **Use HTTPS** in production
+9. **Check user flagged status** before allowing transfers in UI
 
 ---
 
