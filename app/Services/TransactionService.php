@@ -26,6 +26,9 @@ class TransactionService
             if (!$sender || !$receiver) {
                 throw new \Exception('Sender or receiver not found');
             }
+            if ($sender->id === $receiver->id) {
+                throw new \Exception('Sender and receiver cannot be the same');
+            }
             if ($sender->balance < $data['amount'] + $data['commission_fee']) {
                 throw new InsufficientBalanceException('Sender does not have enough balance');
             }
