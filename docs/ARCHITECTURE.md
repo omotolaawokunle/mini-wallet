@@ -783,4 +783,5 @@ php artisan event:cache
 - [Laravel Sanctum](https://laravel.com/docs/sanctum)
 - [Laravel Horizon](https://laravel.com/docs/horizon)
 - [Pinia Documentation](https://pinia.vuejs.org)
+- [Architecture Decision Records](./adr/)
 
