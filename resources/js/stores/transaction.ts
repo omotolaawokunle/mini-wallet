@@ -8,6 +8,7 @@ import type {
     TransactionResponse,
     TransactionListResponse
 } from '@/types/transaction'
+import { User } from '@/types/auth'
 
 export const useTransactionStore = defineStore('transaction', () => {
     const transactions = ref<Transaction[]>([])
@@ -85,6 +86,16 @@ export const useTransactionStore = defineStore('transaction', () => {
         }
     }
 
+    const validateReceiver = async (receiverId: number): Promise<User> => {
+        try {
+            const response = await axios.post('/api/validate-receiver', { receiver_id: receiverId })
+            return response.data.data
+        } catch (err: any) {
+            console.error('Error validating receiver:', err)
+            throw err;
+        }
+    }
+
     const clearMessages = () => {
         error.value = null
         successMessage.value = null
@@ -121,6 +132,7 @@ export const useTransactionStore = defineStore('transaction', () => {
         fetchTransactions,
         createTransfer,
         addTransaction,
+        validateReceiver,
         clearMessages,
         setError,
         setSuccessMessage,
