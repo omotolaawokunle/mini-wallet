@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Transaction;
 use App\Services\ResponseService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class TransferRequest extends FormRequest
 {
@@ -76,6 +77,6 @@ class TransferRequest extends FormRequest
 
     public function failedAuthorization()
     {
-        return ResponseService::error(message: 'Your account has been flagged. Please contact support.', statusCode: 403);
+        throw new AuthorizationException('Your account has been flagged. Please contact support.');
     }
 }
