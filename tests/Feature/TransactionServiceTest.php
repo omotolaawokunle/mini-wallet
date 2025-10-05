@@ -293,56 +293,11 @@ describe('Queue Transfer', function () {
             return $job->senderId === $sender->id &&
                    $job->receiverId === $receiver->id &&
                    $job->amount === 100.0 &&
-                   $job->commissionFee === 10.0 &&
-                   $job->isHighPriority === false;
+                $job->commissionFee === 10.0;
         });
     });
 
-    it('dispatches high priority transfer to transfers-high queue', function () {
-        \Illuminate\Support\Facades\Queue::fake();
-
-        $sender = User::factory()->create(['balance' => 1000]);
-        $receiver = User::factory()->create(['balance' => 500]);
-
-        $this->transactionService->queueTransfer([
-            'sender_id' => $sender->id,
-            'receiver_id' => $receiver->id,
-            'amount' => 100,
-            'commission_fee' => 10,
-            'is_high_priority' => true,
-        ]);
-
-        \Illuminate\Support\Facades\Queue::assertPushed(ProcessTransfer::class, function ($job) use ($sender, $receiver) {
-            return $job->senderId === $sender->id &&
-                   $job->receiverId === $receiver->id &&
-                   $job->amount === 100.0 &&
-                   $job->commissionFee === 10.0 &&
-                   $job->isHighPriority === true &&
-                   $job->queue === 'transfers-high';
-        });
-    });
-
-    it('dispatches standard priority transfer to transfers queue', function () {
-        \Illuminate\Support\Facades\Queue::fake();
-
-        $sender = User::factory()->create(['balance' => 1000]);
-        $receiver = User::factory()->create(['balance' => 500]);
-
-        $this->transactionService->queueTransfer([
-            'sender_id' => $sender->id,
-            'receiver_id' => $receiver->id,
-            'amount' => 100,
-            'commission_fee' => 10,
-            'is_high_priority' => false,
-        ]);
-
-        \Illuminate\Support\Facades\Queue::assertPushed(ProcessTransfer::class, function ($job) {
-            return $job->isHighPriority === false &&
-                   $job->queue === 'transfers';
-        });
-    });
-
-    it('defaults to standard priority when not specified', function () {
+    it('dispatches transfer to transfers queue', function () {
         \Illuminate\Support\Facades\Queue::fake();
 
         $sender = User::factory()->create(['balance' => 1000]);
@@ -356,8 +311,7 @@ describe('Queue Transfer', function () {
         ]);
 
         \Illuminate\Support\Facades\Queue::assertPushed(ProcessTransfer::class, function ($job) {
-            return $job->isHighPriority === false &&
-                   $job->queue === 'transfers';
+            return $job->queue === 'transfers';
         });
     });
 
@@ -373,7 +327,6 @@ describe('Queue Transfer', function () {
             'receiver_id' => $receiver1->id,
             'amount' => 100,
             'commission_fee' => 10,
-            'is_high_priority' => true,
         ]);
 
         $this->transactionService->queueTransfer([
@@ -381,7 +334,6 @@ describe('Queue Transfer', function () {
             'receiver_id' => $receiver2->id,
             'amount' => 50,
             'commission_fee' => 5,
-            'is_high_priority' => false,
         ]);
 
         \Illuminate\Support\Facades\Queue::assertPushed(ProcessTransfer::class, 2);
