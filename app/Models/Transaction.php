@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Builder;
 
 class Transaction extends Model
 {
@@ -33,4 +34,11 @@ class Transaction extends Model
         return $this->belongsTo(User::class, 'receiver_id');
     }
 
+    public function scopeForUser(Builder $query, int $userId): Builder
+    {
+        return $query->where(function ($q) use ($userId) {
+            $q->where('sender_id', $userId)
+                ->orWhere('receiver_id', $userId);
+        });
+    }
 }
