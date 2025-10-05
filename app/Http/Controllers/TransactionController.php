@@ -20,6 +20,7 @@ class TransactionController extends Controller
         $transactions = Transaction::with('sender', 'receiver')
             ->where('sender_id', $user->id)
             ->orWhere('receiver_id', $user->id)
+            ->latest()
             ->paginate(20);
 
         return $this->paginated(

@@ -30,7 +30,7 @@ class TransferFailed
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('transactions.failed.' . $this->senderId),
+            new PrivateChannel('App.Models.User.' . $this->senderId),
         ];
     }
 
