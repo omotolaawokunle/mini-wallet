@@ -11,7 +11,7 @@ Mini Wallet is a full-stack digital wallet application that enables secure money
 - Laravel Sanctum (Session-based authentication)
 - Laravel Horizon (Queue management)
 - Redis (Queue driver & caching)
-- SQLite/MySQL/PostgreSQL (Database)
+- MySQL/PostgreSQL (Database)
 
 **Frontend:**
 - Vue 3 (Composition API with TypeScript)
@@ -32,50 +32,50 @@ Mini Wallet is a full-stack digital wallet application that enables secure money
 ### High-Level Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         Client Layer                             │
+┌────────────────────────────────────────────────────────────────┐
+│                         Client Layer                           │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Vue 3 SPA (TypeScript)                                   │  │
-│  │  - Components (UI)                                        │  │
-│  │  - Composables (Logic)                                    │  │
+│  │  Vue 3 SPA (TypeScript)                                  │  │
+│  │  - Components (UI)                                       │  │
+│  │  - Composables (Logic)                                   │  │
 │  │  - Stores (State - Pinia)                                │  │
-│  │  - Router (Navigation)                                    │  │
+│  │  - Router (Navigation)                                   │  │
 │  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────┘
                               │
                               │ HTTP / WebSocket
                               ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      Application Layer                           │
+┌────────────────────────────────────────────────────────────────┐
+│                      Application Layer                         │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Laravel 12 (Backend API)                                 │  │
-│  │                                                           │  │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │  │
-│  │  │Controllers  │  │ Requests    │  │ Resources   │    │  │
-│  │  │(HTTP Layer) │  │(Validation) │  │(Transform)  │    │  │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘    │  │
-│  │                                                           │  │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │  │
-│  │  │  Services   │  │   Models    │  │  Policies   │    │  │
-│  │  │ (Business)  │  │  (Eloquent) │  │   (Auth)    │    │  │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘    │  │
-│  │                                                           │  │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │  │
-│  │  │    Jobs     │  │   Events    │  │ Exceptions  │    │  │
-│  │  │  (Queues)   │  │(Broadcasting)│ │  (Custom)   │    │  │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘    │  │
+│  │  Laravel 12 (Backend API)                                │  │
+│  │                                                          │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │  │
+│  │  │Controllers  │  │ Requests    │  │ Resources   │       │  │
+│  │  │(HTTP Layer) │  │(Validation) │  │(Transform)  │       │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘       │  │
+│  │                                                          │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │  │
+│  │  │  Services   │  │   Models    │  │  Policies   │       │  │
+│  │  │ (Business)  │  │  (Eloquent) │  │   (Auth)    │       │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘       │  │
+│  │                                                          │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │  │
+│  │  │    Jobs     │  │   Events    │  │ Exceptions  │       │  │
+│  │  │  (Queues)   │  │(Broadcasting)│ │  (Custom)   │       │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘       │  │
 │  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                       Data Layer                                 │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐         │
-│  │  Database    │  │    Redis     │  │   Pusher     │         │
-│  │ (SQLite/     │  │  (Queue &    │  │ (WebSocket)  │         │
-│  │  MySQL/      │  │   Cache)     │  │              │         │
-│  │  PostgreSQL) │  │              │  │              │         │
-│  └──────────────┘  └──────────────┘  └──────────────┘         │
+│                       Data Layer                                │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │  Database    │  │    Redis     │  │   Pusher     │           │
+│  │ (MySQL       │  │  (Queue &    │  │ (WebSocket)  │           │
+│  |  PostgreSQL) │  │   Cache)     │  │              │           │
+│  │              │  │              │  │              │           │
+│  └──────────────┘  └──────────────┘  └──────────────┘           │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
