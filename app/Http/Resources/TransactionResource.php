@@ -20,8 +20,8 @@ class TransactionResource extends JsonResource
             'receiver_id' => $this->receiver_id,
             'sender' => $this->whenLoaded('sender', new UserResource($this->sender)),
             'receiver' => $this->whenLoaded('receiver', new UserResource($this->receiver)),
-            'amount' => $this->amount,
-            'commission_fee' => $this->commission_fee,
+            'amount' => (float) $this->amount,
+            'commission_fee' => (float) $this->commission_fee,
             'type' => $this->when(
                 $request->user()?->id === $this->sender_id,
                 'Debit',
